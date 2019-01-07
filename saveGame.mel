@@ -1,0 +1,31 @@
+global proc saveRice(){
+    string $r = "riceNode";
+    string $info[];
+    clear $info;
+    string $vars[] = `listAttr -v -u $r`;
+    int $invSize = (`getAttr -size riceNode.inventory`);
+    $info[0] = (`about  -cd`);
+    $info[1] = (`about -ct`);
+        for ($one in $vars){
+        if (`getAttr -typ ($r+"."+$one)` == "stringArray"){continue;}
+        if (`getAttr -typ ($r+"."+$one)` == "TdataCompound"){continue;}
+        $info[(size($info))] = ($one+"."+`getAttr -typ ($r+"."+$one)`+"."+`getAttr ($r+"."+$one)`);
+        }
+        if ($invSize > 0){
+        $i = 0;
+            while ($i<($invSize)){
+            $info[(size($info))] = ("inventory.string."+`getAttr riceNode.inventory[$i]`);
+            $i++;
+            }
+        }
+    string $filePath = (`getAttr riceNode.filePath`+"save/"+`getAttr riceNode.user`+"/");
+    string $countr = (size (`getFileList -fld $filePath`)+1);
+    $countr = `python ("'%04d' % "+$countr)`;
+    string $fileName = ($filePath+$countr+".txt");
+    $fileId = `fopen $fileName "w"`;
+        for($line in $info){  
+        fprint $fileId ($line+"\n");  
+        }
+    fclose $fileId ;  
+}
+saveRice;

@@ -1,0 +1,1 @@
+        for ($i=0;$i<(size($nodes));$i++){setAttr -typ "string" ("riceNode."+$nodes[$i]) $setNodes[$i];}

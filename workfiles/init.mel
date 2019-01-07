@@ -1,0 +1,112 @@
+//riceInit// build node and main window
+
+//build Node
+
+proc init(){
+string $user;
+if (`objExists "riceNode"`){delete "riceNode";}
+createNode unknown -n "riceNode";
+for ($int in {"gameIsOver", "gameState", "riceScriptJobIndex", "fisherman", "rice", "timer", "fish", "ate", "throwRice"})
+{addAttr -ln $int -at "long" -keyable true;}
+for ($float in {"sushiSpeed", "GstartTime"})
+{addAttr -ln $float -at "float" -keyable true;}
+for ($string in {"yourRod", "layout", "form", "tab1", "tab2", "fishText", "fishcolumn", "introText", "riceText", "ateText", "throwText", 
+"riceGame", "guestText", "guestTalk", "throwRiceButton", "eatRiceButton", "getItem", "tabs", "mapButton", "filePath", "user", "os"}) 
+{addAttr -ln $string -dt "string" -keyable true;}
+//for ($stringArray in {"inventory", "infoText"}) 
+//{addAttr -ln $stringArray -dt stringArray;}
+string $os = `about -os`;
+if (`gmatch $os "linux*"`) {
+        setAttr -typ "string" riceNode.filePath "/salu/home/forrest/Scripts/NiceRiceGame/" ;
+        $user = capitalizeString (`getenv USERNAME`);
+    }else{
+        setAttr -typ "string" riceNode.filePath "Y:/forrest/Scripts/NiceRiceGame" ;
+        $user = capitalizeString (`getenv userName`); 
+    } 
+            setAttr -typ "string" riceNode.user $user; 
+            setAttr riceNode.sushiSpeed 0.5;
+            setAttr -typ "string" riceNode.os $os;
+}
+
+//build Window
+
+proc riceUI(){
+    string $tabs, $closeButton, $form, $tab1, $introText;
+	if (`window -exists RICE`){deleteUI RICE;}
+	string $riceGame = `window -tlc 5 5 -mb 0 -mnb -0 -bgc 0.9 0.9 0.9 -rtf false -s false -w 473 -h 430 -t ("The Nice Rice Game")RICE`;
+    	$form = `formLayout Form`;
+        	$closeButton = `button -label "Quit" -command "quitRiceGame()"`;
+        	formLayout -edit
+        	-attachForm $closeButton "top"    450
+        	-attachForm $closeButton "left"   300
+        	-attachForm $closeButton "bottom" 0
+        	-attachForm $closeButton "right"  0
+        	$form;
+        	$tabs = `tabLayout -innerMarginWidth 10 -innerMarginHeight 10 MainTabs`;
+        	formLayout -edit
+        	-attachForm $tabs "top"    0
+        	-attachForm $tabs "left"   0
+        	-attachControl $tabs "bottom" 3 $closeButton
+        	-attachForm $tabs "right"  0
+        	$form;
+        	$tab1 = `columnLayout -h 400 BentoBox`;
+        	$introText = `scrollField -ww false -fn "smallFixedWidthFont" -h 430 -w 400 -p $tab1 introField`;
+                rowColumnLayout -w 400 -cs 6 4 -nc 1 riceField;
+                    $riceText = `text -al "left" -l "" riceText`;
+                    $fishText = `text -al "left" -l "" fishText`;
+                rowColumnLayout -w 400 -cs 2 10 -nc 2 riceButtons;
+                    $eatRiceButton = `button -l " Eat all the rice " -command "eatRice" eatRicebutton`;
+                    $throwRiceButton = `button -l " Throw 10 rice on the ground " -command "throwRice" throwRicebutton`;
+                rowColumnLayout -w 400 -nc 1 eatField;
+                    $ateText = `text -l "\n \n" eatText`;
+                rowColumnLayout -w 400 -nc 1 throwField;
+                    $throwText = `text -l " " throwText`;
+                rowColumnLayout -w 400 -cs 2 15 -nc 2 guestField;
+                    $guestText = `text -al "left" -fn "fixedWidthFont" -l "\n\n\n\n\n\n\n\n" guestText`;
+                    $guestTalk = `text -al "center" -l "\n \n" guestTalk`;
+                $fishcolumn = `rowColumnLayout -w 400 -cs 2 15 -nc 4 fishButtons`;
+                setParent $tabs;
+            $tab2 = `rowColumnLayout -nc 4 Inventory`;
+                $yourRod = `button -h 100 -w 100 -label "" Rod`;
+                setAttr -typ "string" riceNode.yourRod $yourRod;                    
+                button -h 100 -w 100 -label "";
+                button -h 100 -w 100 -label "";
+                button -h 100 -w 100 -label "";
+                button -h 100 -w 100 -label "";
+                button -h 100 -w 100 -label "";
+                button -h 100 -w 100 -label "";
+                button -h 100 -w 100 -label "";
+                button -h 100 -w 100 -label "";
+                button -h 100 -w 100 -label "";
+                button -h 100 -w 100 -label "";
+                button -h 100 -w 100 -label "";
+                setParent Inventory;
+              setParent $tabs;
+             setParent $riceGame;
+            tabLayout -edit -tabLabel $tab1 "Bento Box" $tabs ;
+            $tabs = `tabLayout -edit -tv 0 -tl $tab1 "BentoBox" -tl $tab2 "Inventory" $tabs` ;
+        showWindow;	
+
+//string $setNode;
+//for ($node in {"$riceGame", "$form", "$tabs"}){
+//$setNode = ` substituteAllString $node "$" ""`;
+//eval ("setAttr -typ \"string\" (\"riceNode.\"+$setNode) ($+$setNode");}
+    setAttr -typ "string" riceNode.riceGame $riceGame;
+    setAttr -typ "string" "riceNode.form" $form;
+    setAttr -typ "string" riceNode.tabs $tabs;
+    setAttr -typ "string" riceNode.tab2 $tab2;                          
+    setAttr -typ "string" riceNode.fishcolumn $fishcolumn;                    
+    setAttr -typ "string" riceNode.guestTalk $guestTalk;                    
+    setAttr -typ "string" riceNode.guestText $guestText;
+    setAttr -typ "string" riceNode.throwText $throwText;
+    setAttr -typ "string" riceNode.ateText $ateText;
+    setAttr -typ "string" riceNode.eatRiceButton $eatRiceButton;
+    setAttr -typ "string" riceNode.throwRiceButton $throwRiceButton;
+    setAttr -typ "string" riceNode.riceText $riceText;
+    setAttr -typ "string" riceNode.tab1 $tab1;
+    setAttr -typ "string" riceNode.introText $introText;
+    setAttr -typ "string" riceNode.fishText $fishText;
+}
+
+init;
+riceUI;

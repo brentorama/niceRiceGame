@@ -1,0 +1,31 @@
+string $drawing[];
+global proc string[] getImage(string $file)
+{
+    string $user, $localUser, $filePath, $os, $image[];
+    $os = `about -os`; 
+    if (`gmatch $os "linux*"`) {
+            $filePath = ("/salu/home/forrest/Scripts/NiceRiceGame/Images/"+$file) ;
+            $user = `getenv USERNAME`; 
+        }else{
+            $filePath = ("Y:/forrest/Scripts/NiceRiceGame/Images/"+$file) ;
+            $user = `getenv userName`; 
+    } 
+    $localUser = `capitalizeString $user` ; 
+    if (!`filetest -f $filePath`){
+        print ("File "+$filePath+" not found");
+    }else{
+    $fileId = `fopen $filePath "r"` ; 
+    string $nextLine = `fgetline $fileId` ;   
+    while (size($nextLine) > 0) {  
+        string $cleanLine = strip($nextLine) ;    
+        $image[size($image)] = $cleanLine ;  
+        $nextLine = `fgetline $fileId` ;   
+    }  
+    fclose $fileId;
+    return $image;
+    }
+}
+
+$drawing = getImage($file);
+
+print $drawing;

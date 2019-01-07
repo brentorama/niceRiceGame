@@ -1,0 +1,37 @@
+proc doGet() {
+    int $rice =`getAttr riceNode.rice`;
+    string $rod = `getAttr riceNode.yourRod`;
+    string $getItem =`getAttr riceNode.getItem`;
+    string $buyButton =`getAttr uiNode.buyButton`;
+    string $guestTalk =`getAttr uiNode.guestTalk`;
+    string $tabs =`getAttr uiNode.tabs`;
+    string $poleButton =`getAttr uiNode.poleButton`;
+    string $user = `getAttr riceNode.user`;
+    string $reply;;
+        if ($getItem == "bambooPole"){
+            if ($rice >= 300){
+                if ($rod != $getItem) {
+                    $reply = "\"Heh, heh... excellent purchase!\"";
+                    setAttr riceNode.rice ($rice - 300);
+                    setAttr riceNode.yourRod -typ "string" $getItem;
+                    button -e -en 0 $buyButton;
+                    tabLayout -edit -tv 1 $tabs ;
+                    button -e -en on $poleButton;
+                }else{
+                    $reply = "\"You already have a bamboo rod,\nwhats wrong with the one you've got??\"";
+                    setAttr -typ "string" riceNode.getItem "null";
+                }
+            }else{
+                $reply = "\"Sorry there "+$user+"\nbut you ain't got enough rice! \"";
+                setAttr -typ "string" riceNode.getItem "null";
+            }
+        text -e -l $reply $guestTalk ;
+        } 
+        if (`getAttr riceNode.getItem` != "null"){
+            $i = `getAttr -size riceNode.inventory`;
+            setAttr -type "string" riceNode.inventory[$i] ($getItem);
+            setAttr -typ "string" riceNode.getItem "null";
+        }
+    }    
+
+doGet;

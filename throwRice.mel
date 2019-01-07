@@ -1,0 +1,18 @@
+proc throwRice() {
+    int $rice, $throwRice;
+    string $throwText, $riceText, $throwRiceButton;
+    $rice = `getAttr riceNode.rice`;
+    $throwRice = `getAttr riceNode.throwRice`;
+    $throwText = `getAttr uiNode.throwText`;
+    $riceText = `getAttr uiNode.riceText`;
+    $throwRiceButton = `getAttr uiNode.throwRiceButton`;  
+    string $smiley;
+    if ($rice >= 10) { $rice -= 10; setAttr riceNode.rice ($rice);
+        if ($rice < 10) {button -e -en 0 $throwRiceButton;}
+        $throwRice = ($throwRice + 10);
+        text -e -l ("  You threw "+$throwRice+" rice on the ground" + makeSmiley()) $throwText ;
+        }
+    text -e -l ("\n  You have "+$rice+" rice \n") $riceText ;
+}
+
+throwRice;

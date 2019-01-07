@@ -1,0 +1,238 @@
+global proc riceInit(){
+eval ("source \"/salu/home/forrest/Scripts/NiceRiceGame/init.mel\"");
+}
+
+global proc riceGame(){
+    riceInit;
+string $riceGame = `getAttr riceNode.riceGame`;
+int $riceScriptJobIndex;
+    if ($riceScriptJobIndex == 0) $riceScriptJobIndex = -1;
+    if (!`scriptJob -ex $riceScriptJobIndex`){
+        $riceScriptJobIndex = `scriptJob -p $riceGame -kws -e idle riceScriptJob`;
+        setAttr riceNode.riceScriptJobIndex $riceScriptJobIndex;
+        }else{
+        scriptJob -k $riceScriptJobIndex -f;
+        deleteUI $riceGame;
+    }
+}
+
+proc timerstart(){
+    float $GstartTime;
+    $GstartTime = `timerX`;
+    setAttr riceNode.GstartTime $GstartTime;
+}
+
+proc float timerquery(){
+    float $GstartTime = `getAttr riceNode.GstartTime`;
+    return (`timerX -startTime $GstartTime`);
+}
+
+proc clearInfo(){
+    string $introText = `getAttr riceNode.introText`;
+    scrollField -e -tx "" $introText;
+}
+
+proc doLoad(){
+string $infoText[];
+int $timer = `getAttr riceNode.timer`;
+int $gameState = `getAttr riceNode.gameState`;
+string $introText = `getAttr riceNode.introText`; 
+string $user = `getAttr riceNode.user`; 
+if ($gameState == 0){
+    if ($timer == 1) {$infoText[0] = ("Greetings,"+$user+" and welcome to the\nNice Rice Game!\nYour game is loading, please wait!\n\n2015 by Brent Forrest");}
+    if ($timer == 4) {$infoText[0] = ("\nLoading preferences...");}
+    if ($timer == 4.5) {$infoText[0] = ("Contacting server...");}
+    if ($timer == 6) {$infoText[0] = ("Checking local drive for rice...");}
+    if ($timer == 10) {clearInfo();}
+    if ($timer == 11) {$infoText = getImage("Loading.txt");}
+    if ($timer == 20) {clearInfo();}
+    if ($timer == 21) {startGame();}
+    $timer++;
+    setAttr riceNode.timer $timer;
+    for ($i=0;$i<(size($infoText));$i++)
+        {
+            scrollField -e -ip 0 -it ($infoText[$i]+"\n") $introText;
+        }  
+    }
+} 
+
+proc startGame(){
+setAttr riceNode.gameState 1;
+setAttr riceNode.timer 0;
+setAttr riceNode.sushiSpeed 1;
+string $introText = `getAttr riceNode.introText`;
+scrollField -e -vis 0 $introText;
+}
+
+global proc riceScriptJob(){
+    if (timerquery() > `getAttr riceNode.sushiSpeed`) {
+           if (`getAttr riceNode.gameState` == 0){doLoad;}
+           if (`getAttr riceNode.gameState` == 1){addRice;}          
+        timerstart;
+    }
+}
+   
+global proc string[] getImage(string $file)
+{
+    string $image[];
+    string $filePath = `getAttr riceNode.filePath`;
+    $getFile = ($filePath+"/Images/"+$file);
+    if (!`filetest -f $getFile`){
+        print ("File "+$getFile+" not found");
+    }else{
+    $fileId = `fopen $getFile "r"` ; 
+    string $nextLine = `fgetline $fileId` ;   
+    while (size($nextLine) > 0) {  
+        string $cleanLine = strip($nextLine) ;    
+        $image[size($image)] = ($cleanLine) ;  
+        $nextLine = `fgetline $fileId` ;   
+    }  
+    fclose $fileId;
+    return $image;
+    }
+}
+   
+/* Switch from intro to game mode 1
+tabLayout -edit -tv 1 $riceTab` ;
+ */
+     
+global proc addRice() {
+    string $fishAmount, $mapButton, $buyButton, $fishText, $getItem, $fishcolumn, $riceGame, $riceText, $throwRiceButton, $guestTalk, $guestText;
+    int $rice, $fish, $fisherman;
+    $buyButton = `getAttr riceNode.buyButton`;
+    $mapButton = `getAttr riceNode.mapButton`;
+    $fishText = `getAttr riceNode.fishText`;
+    $getItem = `getAttr riceNode.getItem`;
+    $fishcolumn = `getAttr riceNode.fishcolumn`;
+    $riceGame = `getAttr riceNode.riceGame`;
+    $riceText = `getAttr riceNode.riceText`;
+    $throwRiceButton = `getAttr riceNode.throwRiceButton`;
+    $guestTalk = `getAttr riceNode.guestTalk`;
+    $guestText = `getAttr riceNode.guestText`;
+    $rice = `getAttr riceNode.rice`;
+    $fish = `getAttr riceNode.fish`;
+    $fisherman = `getAttr riceNode.fisherman`;
+    $buyButton = `getAttr riceNode.buyButton`;
+    setAttr riceNode.rice (`getAttr riceNode.rice` + 1);
+    string $riceAmount = ("\n  You have "+$rice+" rice \n");
+    if (($rice < 10) && (` button -q -en $throwRiceButton `))  {button -e -en 0 $throwRiceButton;}
+    if (($rice >= 10) && (!(`button -q -en $throwRiceButton`)))  {button -e -en 1 $throwRiceButton;}
+    if (`button -q -ex $buyButton`)
+    { 
+        if (($rice < 300) && ((`button -q -en $buyButton`)))  {button -e -en 0 $buyButton;}
+        if (($rice >= 300) && ((`button -q -en $buyButton`)))  {button -e -en 1 $buyButton;}
+    }
+    if ($fish !=0) {
+        $fishAmount = ("  You have "+$fish+" fish \n");
+}
+    text -e -l ($riceAmount) $riceText ;
+    text -e -l ($fishAmount) $fishText ;
+    if (($fisherman == 0) && ($rice > 60)){
+    $fisherman++;
+    setAttr riceNode.fisherman $fisherman;
+    text -e -l "\n   /---\\\n  / - o \\\n\\  ( | )\n|\\  --\\\n| \\   | |\n:  \\  | |\nJ  OO___|\n"  $guestText ;
+    text -e -l (" Fishy Dan: \"Well howdy there stranger, \n I'll trade you 60 rice for one fish!\"") $guestTalk ;
+    button -e -vis on $buyButton;
+}
+    if (($fisherman == 1) && ($rice > 300)){
+		$fisherman++;
+		$getItem = "bambooPole";
+    $buyButton = `button -p $fishcolumn -l " Buy Bamboo Pole (300 r) " buyButton`;
+    button -e -command "get()" $buyButton;
+    text -e -l (" Fishy Dan:\no===EQ====o====o====o====--j\n\n I've also got this neat fishing pole for sale!") $guestTalk ;
+	}    
+	if (($fisherman == 2) && ($rice > 300) && ($fish > 3)){
+		$fisherman++;
+		$getItem = "map";
+    $mapButton = `button -p $fishcolumn -l " Buy Map (450 r) " mapButton`;
+    button -e -command "get()" $mapButton;
+    text -e -l "(---------(\n|    ->   |\n| x       |\n)_____)\nFishy Dan: I see you're a person\nwho appreciates good fish!\nPerhaps you'd be interested in\nthis map of local \nfishie holes!" $guestTalk;
+	    setAttr riceNode.fisherman $fisherman;
+	    setAttr -typ "string" riceNode.getItem $getItem;
+	    }
+}
+
+global proc buyFish(){
+    global string $fishText, $guestTalk, $riceText;
+    global int $rice, $fish;
+    if ($rice > 59) {
+        $fish++;
+        $rice = ($rice - 60);
+    text -e -l ("\n  You have "+$rice+" rice \n") $riceText ;
+    text -e -l ("  You have "+$fish+" fish \n") $fishText ;
+    text -e -l (" Fishy Dan: \"Much obliged, \n Here's one "+getFish()+"!\"") $guestTalk ;
+    }else{
+    text -e -l (" Fishy Dan: \"Sorry, you \n don't have enough rice\"") $guestTalk ;
+
+    }
+}
+
+global proc string getFish(){
+    string $fishies[] = {"tuna", "mackerel", "albacore", "catfish", "goldfish", "ugly fish", "whitefish", "baby shrimp", "sardine", "guppy", "minnow"};
+    int $i = rand (size ($fishies)) ;
+    return $fishies[$i];
+}
+
+global proc eatRice(){
+   int $rice = `getAttr riceNode.rice`;
+   int $ate
+   string $ateText
+   string $riceTex, 
+   string $throwRiceButton
+   button -e -en 0 $throwRiceButton;
+   $ate = ($rice + $ate);
+   $ateAmt = ("\n  You ate "+$ate+" rice \n");
+   text -e -l ("\n  You have 0 rice \n") $riceText ;
+   text -e -l ($ateAmt) $ateText ;
+   $rice = -1;
+}
+
+global proc throwRice() {
+    global int $rice, $throwRice;
+    global string $throwText, $riceText, $throwRiceButton;
+    string $smiley;
+    if ($rice >= 10) {
+        $rice = ($rice - 10);
+        if ($rice < 10) {button -e -en 0 $throwRiceButton;}
+        $throwRice = ($throwRice + 10);
+        text -e -l ("\n  You have "+$rice+" rice \n") $riceText ;
+        text -e -l ("  You threw "+$throwRice+" rice on the ground" + makeSmiley()) $throwText ;
+    }
+}
+
+global proc string makeSmiley() {
+    global int $throwRice;
+    int $i;
+    string $smilies[] = {".", "..", "...", " :|", " :/", " :P", " :(", " 8(", " :.(", " >:(", " >:O", "  >:-(", " (o _ o)", " (> _ <)"};
+    int $size = (size ($smilies));
+    $i = (($throwRice * 0.1)-1);
+    if ($i > $size) { 
+        $i = ($size-1);
+    }
+return $smilies[$i];
+}
+
+global proc get() {
+    global int $rice;
+    global string $buyButton, $getItem, $guestTalk, $tab2, $yourRod;
+    global string $inventory[];
+    if ($getItem == "bambooPole") {
+     $rice = ($rice - 300);
+     text -e -l ("\"Heh, heh... excellent purchase!\"") $guestTalk ;
+     button -e -en 0 $buyButton;
+    tabLayout -edit-tv 1 $tab2 ;
+    button -e -l "Bamboo Pole" -command "print \"It's a shitty pole\"" $yourRod;
+    }
+    $iventory[(size($inventory))] = $getItem;
+    $getItem = "";
+}
+
+global proc quitRiceGame(){
+    global string $riceGame;
+    global int $riceScriptJobIndex;
+    scriptJob -k $riceScriptJobIndex -f;
+    deleteUI $riceGame;
+    riceInit;
+}
+
+riceGame;
